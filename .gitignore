@@ -1,0 +1,7 @@
+# Runtime artifacts
+backup.lock
+backup_progress.txt
+
+# Logs stay in logs/ but keep directory tracked
+logs/*
+!logs/.gitkeep
