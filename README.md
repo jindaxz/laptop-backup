@@ -15,10 +15,12 @@ Shell scripts in this repository automate daily backups of the current user's ho
    rclone ls gdrive:      # quick connectivity check
    ```
 2. **Prime the log directory**: already handled by the scripts (`logs/` keeps all run logs, tracked via `.gitkeep`).
-3. **Test a manual backup**:
+3. **Test a manual backup (runs in background with nohup)**:
    ```bash
-   ./daily_backup.sh
-   tail logs/daily_backup_$(date +%Y%m%d).log
+   ./run_daily_backup_bg.sh
+   tail -f logs/daily_backup_$(date +%Y%m%d).log   # primary rclone log
+   ```
+   The wrapper writes the `nohup` console output to `logs/manual_nohup_<timestamp>.log` and records the PID in `backup.pid`.
    ```
 
 ## Installing the Daily Service
@@ -31,6 +33,7 @@ Use the helper to manage a per-user systemd unit:
 The timer waits ~5 minutes after boot (`OnBootSec=5min`), then runs every 24 hours (`OnUnitActiveSec=1d`). `loginctl enable-linger $USER` is invoked so the timer survives logouts. Ensure the laptop connects to the internet before the scheduled run so `rclone` can refresh Drive tokens.
 
 ## Manual Utilities
+- `run_daily_backup_bg.sh`: launches `daily_backup.sh` via `nohup`, captures stdout/stderr in `logs/manual_nohup_<timestamp>.log`, and records the PID to `backup.pid`.
 - `full_home_backup.sh`: one-off full copy to `gdrive:home_backup_full/` with richer progress stats.
 - `monitor_backup.sh`: shows PID status, tails `backup_progress.txt`, and streams the newest log under `logs/`.
 - `check_backup_status.sh`: inspects today's log, lists recent logs, and reports lock-file state.

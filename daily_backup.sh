@@ -6,6 +6,7 @@ LOG_DIR="$BACKUP_DIR/logs"
 DATE=$(date +%Y%m%d)
 LOG_FILE="$LOG_DIR/daily_backup_$DATE.log"
 LOCK_FILE="$BACKUP_DIR/backup.lock"
+PID_FILE="$BACKUP_DIR/backup.pid"
 
 mkdir -p "$LOG_DIR"
 
@@ -16,12 +17,13 @@ if [ -f "$LOCK_FILE" ]; then
         echo "$(date): 备份已在运行 (PID: $PID)" | tee -a "$LOG_FILE"
         exit 1
     else
-        rm -f "$LOCK_FILE"
+        rm -f "$LOCK_FILE" "$PID_FILE"
     fi
 fi
 
 # 创建锁文件
 echo $$ > "$LOCK_FILE"
+echo $$ > "$PID_FILE"
 
 echo "$(date): 开始每日增量备份..." | tee -a "$LOG_FILE"
 
@@ -58,7 +60,7 @@ fi
 # 清理30天前的日志
 find "$LOG_DIR" -name "daily_backup_*.log" -mtime +30 -delete
 
-# 删除锁文件
-rm -f "$LOCK_FILE"
+# 删除锁文件和PID文件
+rm -f "$LOCK_FILE" "$PID_FILE"
 
 exit $EXIT_CODE
